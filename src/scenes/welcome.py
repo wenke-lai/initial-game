@@ -1,7 +1,8 @@
 import pygame
 import pygame_gui as gui
 
-from .scene import BaseScene
+from src.components.scene import BaseScene
+
 from .ui import DebugOverlay
 
 

@@ -1,7 +1,7 @@
 import pygame
 import pygame_gui
 
-from .scene import BaseScene
+from src.components.scene import BaseScene
 
 
 class Player(pygame.sprite.Sprite):
