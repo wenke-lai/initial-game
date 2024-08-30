@@ -1,4 +1,5 @@
 import sys
+from importlib import import_module
 
 import pygame
 
@@ -23,8 +24,8 @@ class Game:
         self.scene = Welcome()
 
     def change_scene(self, scene_name: str):
-        # self.scene = Scene()
-        ...
+        scene_module = import_module(f"src.scenes.{scene_name}")
+        self.scene = scene_module.Scene()
 
     def run(self):
         while True:
@@ -41,11 +42,13 @@ class Game:
                         pygame.quit()
                         sys.exit()
 
-            self.screen.fill(colors.BACKGROUND)
+                self.scene.process_events(event)
 
+            self.screen.fill(colors.BACKGROUND)
             # scene logic
-            self.scene.run()
-            # if x then self.change_scene("welcome")
+            scene_name = self.scene.run()
+            if scene_name:
+                self.change_scene(scene_name)
 
             pygame.display.flip()
             self.clock.tick(settings.FPS)

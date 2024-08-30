@@ -13,6 +13,14 @@ class BaseScene:
 
         self.sound = None
 
+    @property
+    def width(self) -> int:
+        return self.display_surface.get_width()
+
+    @property
+    def height(self) -> int:
+        return self.display_surface.get_height()
+
     def toggle_menu(self):
         self.game_paused = not self.game_paused
 
@@ -22,3 +30,6 @@ class BaseScene:
 
     def run(self):
         self.play_sound()
+
+    def process_events(self, event: pygame.event.Event):
+        pass
