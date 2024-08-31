@@ -12,7 +12,10 @@ class Welcome(BaseScene):
         self.finished = False
 
         # setup gui
-        self.gui_manager = gui.UIManager((self.width, self.height))
+        self.gui_manager = gui.UIManager(
+            (self.width, self.height),
+            theme_path="src/scenes/welcome_theme.json",
+        )
         self.create_ui()
 
     def create_ui(self):
@@ -24,7 +27,7 @@ class Welcome(BaseScene):
             command=self._start_the_game,
         )
         gui.elements.UILabel(
-            relative_rect=pygame.Rect(0, -60, 500, 500),
+            relative_rect=pygame.Rect(0, -60, 400, 60),
             text="Welcome to the game",
             manager=self.gui_manager,
             anchors={"center": "center"},
