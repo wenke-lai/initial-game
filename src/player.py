@@ -1,5 +1,6 @@
 from collections import defaultdict
 from enum import Enum, auto
+from typing import Literal
 
 import pygame
 import pygame_gui as gui
@@ -62,28 +63,72 @@ ANIMATION_MAPPINGS = {
         PlayerDirection.LEFT: [(0, 7), (1, 7), (6, 7), (3, 7), (4, 7), (7, 7)],
     },
 }
+UNDERWEARS = {
+    "a": "1 outfit/char_a_p1_1out_boxr_v01.png",
+    "b": "1 outfit/char_a_p1_1out_undi_v01.png",
+}
+HAIRS = {
+    "a": "4 hair/char_a_p1_4har_dap1_v01.png",
+    "b": "4 hair/char_a_p1_4har_bob1_v01.png",
+}
+OUTFITS = {
+    "a": "1 outfit/char_a_p1_1out_fstr_v04.png",
+    "b": "1 outfit/char_a_p1_1out_pfpn_v04.png",
+}
+HATS = {
+    "a": "5 hat/char_a_p1_5hat_pfht_v04.png",
+    "b": "5 hat/char_a_p1_5hat_pnty_v04.png",
+}
 
 
-def load_animations(path: str, mappings: dict):
-    surface_sheet = pygame.image.load(path).convert_alpha()
+def load_animations(body_type: Literal["a", "b"], mappings: dict, has_outfit):
+    sheet_path = "src/assets/character/images/"
+
+    surface_sheet = pygame.image.load(sheet_path + "character.png").convert_alpha()
+    underwear_sheet = pygame.image.load(
+        sheet_path + UNDERWEARS[body_type]
+    ).convert_alpha()
+    hair_sheet = pygame.image.load(sheet_path + HAIRS[body_type]).convert_alpha()
+
+    if has_outfit:
+        outfit_sheet = pygame.image.load(
+            sheet_path + OUTFITS[body_type]
+        ).convert_alpha()
+        hat_sheet = pygame.image.load(sheet_path + HATS[body_type]).convert_alpha()
 
     animations = defaultdict(lambda: defaultdict(list))
     for action, directions in mappings.items():
         for direction, coordinates in directions.items():
             for x, y in coordinates:
-                image = surface_sheet.subsurface(
-                    x * FRAME_WIDTH, y * FRAME_HEIGHT, FRAME_WIDTH, FRAME_HEIGHT
+                size = (x * FRAME_WIDTH, y * FRAME_HEIGHT, FRAME_WIDTH, FRAME_HEIGHT)
+
+                character = surface_sheet.subsurface(*size)
+                underwear = underwear_sheet.subsurface(*size)
+                character.blit(underwear, (0, 0))
+                hair = hair_sheet.subsurface(*size)
+                character.blit(hair, (0, 0))
+
+                if has_outfit:
+                    outfit = outfit_sheet.subsurface(*size)
+                    character.blit(outfit, (0, 0))
+                    hat = hat_sheet.subsurface(*size)
+                    character.blit(hat, (0, 0))
+
+                animations[direction][action].append(
+                    pygame.transform.scale2x(character)
                 )
-                image = pygame.transform.scale(
-                    image, (FRAME_WIDTH * 2, FRAME_HEIGHT * 2)
-                )
-                animations[direction][action].append(image)
 
     return animations  # {PlayerDirection: {PlayerAction: [python.Surface]}
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x: int, y: int, groups: list[pygame.sprite.Group]):
+    def __init__(
+        self,
+        pos: list[int, int],
+        body_type: str,
+        groups: list[pygame.sprite.Group],
+        has_outfit: bool = False,
+    ):
         super().__init__(groups)
 
         # todo: retrieve the status from the database
@@ -98,15 +143,12 @@ class Player(pygame.sprite.Sprite):
         self.action = PlayerAction.STAND
 
         # animation setup
-        self.animations = load_animations(
-            "src/assets/character/images/character.png",
-            mappings=ANIMATION_MAPPINGS,
-        )
+        self.animations = load_animations(body_type, ANIMATION_MAPPINGS, has_outfit)
         self.frame_index = 0
         self.frame_speed = 0.15  # todo: enhance this by ANIMATION TIMING GUIDE
 
         self.image = self.animations[self.direction][self.action][self.frame_index]
-        self.rect = self.image.get_rect(topleft=(x, y))
+        self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0, -10)
 
     def input(self):

@@ -23,7 +23,7 @@ class Scene(BaseScene):
         # sprite setup
         self.visible_sprites = pygame.sprite.Group()
 
-        self.player = Player(100, 100, [self.visible_sprites])
+        self.player = Player((100, 100), "a", [self.visible_sprites])
 
         # UI setup
         self.create_map()
@@ -34,7 +34,18 @@ class Scene(BaseScene):
         self.debug += debug_player(self.ui, self.player)
 
     def create_map(self):
-        pass
+        for _ in range(8):
+            x = random.randint(0, self.width - 64 * 2)
+            y = random.randint(0, self.height - 64 * 2)
+            npc = Player(
+                (x, y),
+                random.choice(["a", "b"]),
+                [self.visible_sprites],
+                random.choice([True, False]),
+            )
+            if random.choice([True, False]):
+                npc.input = lambda: None  # can do nothing
+            npc.move = lambda: None  # can do actions but no movement
 
     def process_events(self, event: pygame.event.Event):
         self.ui.process_events(event)
