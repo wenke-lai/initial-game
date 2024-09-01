@@ -1,6 +1,6 @@
 # Initial Game
 
-An initial, or a scaffold project
+An initial game project.
 
 ## Requriements
 
@@ -11,12 +11,8 @@ An initial, or a scaffold project
 ## Quick Start
 
 1. Clone this project
-2. Rename this project folder (optional)
-3. update this porject name and author in `pyproject.toml`
-4. Change the git remote url
-5. Install dependencies
-6. Start development
-    - remove `src/assets/*` folder if you want to use your own assets
+2. Install all dependencies with poetry `poetry install`
+3. Start the game with `poetry run python main.py`
 
 ## License
 
@@ -26,6 +22,8 @@ For more information about Pygame, please visit the [Pygame official website](ht
 
 ## Assets
 
+### Ninja Adventure Asset Pack
+
 This project uses assets from the Ninja Adventure Asset Pack, which are released under the Creative Commons Zero (CC0) license.
 
 **Credits:**
@@ -34,3 +32,16 @@ This project uses assets from the Ninja Adventure Asset Pack, which are released
 - Asset Pack: [Ninja Adventure Asset Pack](https://pixel-boy.itch.io/ninja-adventure-asset-pack)
 
 While attribution is not required under the CC0 license, we appreciate the work of the original creators and encourage you to check out their other projects.
+
+### Mana Seed
+
+This project uses assets from the FREE Mana Seed Character Base Demo.
+
+> Modify the name of the folders and files to simplify the process of using this assets
+
+**Credits:**
+
+- Assets created by [Mana Seed](https://selieltheshaper.weebly.com/)
+- Character: [FREE Mana Seed Character Base Demo](https://seliel-the-shaper.itch.io/character-base)
+  - in folder: `src/assets/character`
+- License: <https://selieltheshaper.weebly.com/user-license.html>
