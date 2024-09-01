@@ -114,8 +114,12 @@ def load_animations(body_type: Literal["a", "b"], mappings: dict, has_outfit):
                     hat = hat_sheet.subsurface(*size)
                     character.blit(hat, (0, 0))
 
+                # after merge, convert to display format
+                character = character.convert_alpha()
+
                 animations[direction][action].append(
-                    pygame.transform.scale2x(character)
+                    # after scaling, convert to display format
+                    pygame.transform.scale2x(character).convert_alpha()
                 )
 
     return animations  # {PlayerDirection: {PlayerAction: [python.Surface]}
