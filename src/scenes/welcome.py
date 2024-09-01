@@ -39,6 +39,11 @@ class Welcome(BaseScene):
     def process_events(self, event: pygame.event.Event):
         self.gui_manager.process_events(event)
 
+        # fixme: debug only
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                self.finished = True
+
     def run(self) -> str | None:
         super().run()
 
