@@ -40,7 +40,7 @@ class Obstacle(pygame.sprite.Sprite):
         self.image = pygame.Surface((50, 50))
         self.image.fill("red")
         self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(0, -10)
+        self.hitbox = self.rect.inflate(-10, -10)
 
 
 class AnchorPoint(pygame.sprite.Sprite):

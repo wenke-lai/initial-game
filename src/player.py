@@ -158,7 +158,7 @@ class Player(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.mask.get_bounding_rects()[0]
         self.rect.center = pos
-        self.hitbox = self.rect.inflate(0, -10)
+        self.hitbox = self.rect.inflate(-10, -10)
 
     def input(self):
         keys = pygame.key.get_pressed()
