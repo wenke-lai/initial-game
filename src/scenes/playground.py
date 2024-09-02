@@ -5,7 +5,10 @@ import pygame_gui as gui
 
 from src.components.scene import BaseScene
 from src.player import Player, debug_player
+from src import settings
 
+def random_pos(width: int = settings.WINDOW_WIDTH, height: int = settings.WINDOW_HEIGHT, merge: int = 64 * 2):
+    return (random.randint(0, width - merge), random.randint(0, height - merge))
 
 class Obstacle(pygame.sprite.Sprite):
     def __init__(self, pos, groups):
@@ -14,6 +17,7 @@ class Obstacle(pygame.sprite.Sprite):
         self.image = pygame.Surface((50, 50))
         self.image.fill("red")
         self.rect = self.image.get_rect(topleft=pos)
+        self.hitbox = self.rect.inflate(0, -10)
 
 
 class Scene(BaseScene):
@@ -22,8 +26,9 @@ class Scene(BaseScene):
 
         # sprite setup
         self.visible_sprites = pygame.sprite.Group()
+        self.obstacle_sprites = pygame.sprite.Group()
 
-        self.player = Player((100, 100), "a", [self.visible_sprites])
+        self.player = Player((100, 100), "a", [self.visible_sprites], self.obstacle_sprites)
 
         # UI setup
         self.create_map()
@@ -34,18 +39,19 @@ class Scene(BaseScene):
         self.debug += debug_player(self.ui, self.player)
 
     def create_map(self):
-        for _ in range(8):
-            x = random.randint(0, self.width - 64 * 2)
-            y = random.randint(0, self.height - 64 * 2)
+        for _ in range(2):
             npc = Player(
-                (x, y),
+                random_pos(),
                 random.choice(["a", "b"]),
-                [self.visible_sprites],
+                [self.visible_sprites, self.obstacle_sprites],
+                None,
                 random.choice([True, False]),
             )
             if random.choice([True, False]):
                 npc.input = lambda: None  # can do nothing
             npc.move = lambda: None  # can do actions but no movement
+
+            Obstacle(random_pos(), [self.visible_sprites, self.obstacle_sprites])
 
     def process_events(self, event: pygame.event.Event):
         self.ui.process_events(event)

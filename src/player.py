@@ -131,9 +131,11 @@ class Player(pygame.sprite.Sprite):
         pos: list[int, int],
         body_type: str,
         groups: list[pygame.sprite.Group],
+        obstacle_sprites: pygame.sprite.Group,
         has_outfit: bool = False,
     ):
         super().__init__(groups)
+        self.obstacle_sprites = obstacle_sprites
 
         # todo: retrieve the status from the database
         self.status = {"speed": 3}
@@ -152,7 +154,10 @@ class Player(pygame.sprite.Sprite):
         self.frame_speed = 0.15  # todo: enhance this by ANIMATION TIMING GUIDE
 
         self.image = self.animations[self.direction][self.action][self.frame_index]
-        self.rect = self.image.get_rect(topleft=pos)
+        # create a rect from the mask instead of the image
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.mask.get_bounding_rects()[0] 
+        self.rect.center = pos
         self.hitbox = self.rect.inflate(0, -10)
 
     def input(self):
@@ -201,9 +206,30 @@ class Player(pygame.sprite.Sprite):
             self.vector = self.vector.normalize()
 
         self.hitbox.x += self.vector.x * self.speed
+        self.collision('horizontal')
         self.hitbox.y += self.vector.y * self.speed
+        self.collision('vertical')
 
         self.rect.center = self.hitbox.center
+
+    def collision(self, direction:str):
+        for sprite in self.obstacle_sprites:
+            if not sprite.hitbox.colliderect(self.hitbox):
+                continue
+            if not pygame.sprite.collide_mask(self, sprite):
+                continue
+
+            # fixme: the movements is not smooth, because the image width/height is not fixed.
+            if direction == 'horizontal':
+                if self.vector.x > 0: # moving right
+                    self.hitbox.right = sprite.hitbox.left
+                if self.vector.x < 0: # moving left
+                    self.hitbox.left = sprite.hitbox.right
+            if direction == 'vertical':
+                if self.vector.y > 0: # moving down
+                    self.hitbox.bottom = sprite.hitbox.top
+                if self.vector.y < 0: # moving up
+                    self.hitbox.top = sprite.hitbox.bottom
 
     def animate(self):
         animations = self.animations[self.direction][self.action]
