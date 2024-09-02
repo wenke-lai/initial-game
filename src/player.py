@@ -202,34 +202,31 @@ class Player(pygame.sprite.Sprite):
                 self.action = PlayerAction.WALK
 
     def move(self):
+        previous_pos = pygame.math.Vector2(self.hitbox.topleft)
+
         if self.vector.magnitude() != 0:
             self.vector = self.vector.normalize()
-
-        self.hitbox.x += self.vector.x * self.speed
-        self.collision("horizontal")
-        self.hitbox.y += self.vector.y * self.speed
-        self.collision("vertical")
+        move_vector = pygame.math.Vector2(
+            self.vector.x * self.speed,
+            self.vector.y * self.speed,
+        )
+        self.hitbox.topleft += move_vector
+        self.collision(previous_pos)
 
         self.rect.center = self.hitbox.center
 
-    def collision(self, direction: str):
+    def collision(self, previous_pos: pygame.math.Vector2):
+        # todo: this only corrects collisions for a single object
+        is_colliding = False
         for sprite in self.obstacle_sprites:
-            if not sprite.hitbox.colliderect(self.hitbox):
-                continue
-            if not pygame.sprite.collide_mask(self, sprite):
-                continue
-
-            # fixme: the movements is not smooth, because the image width/height is not fixed.
-            if direction == "horizontal":
-                if self.vector.x > 0:  # moving right
-                    self.hitbox.right = sprite.hitbox.left
-                if self.vector.x < 0:  # moving left
-                    self.hitbox.left = sprite.hitbox.right
-            if direction == "vertical":
-                if self.vector.y > 0:  # moving down
-                    self.hitbox.bottom = sprite.hitbox.top
-                if self.vector.y < 0:  # moving up
-                    self.hitbox.top = sprite.hitbox.bottom
+            if sprite.hitbox.colliderect(self.hitbox):
+                if pygame.sprite.collide_mask(self, sprite):
+                    is_colliding = True
+        if is_colliding:
+            if self.vector.x != 0:
+                self.hitbox.x = previous_pos.x
+            if self.vector.y != 0:
+                self.hitbox.y = previous_pos.y
 
     def animate(self):
         animations = self.animations[self.direction][self.action]
