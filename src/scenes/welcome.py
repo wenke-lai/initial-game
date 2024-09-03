@@ -1,3 +1,5 @@
+import webbrowser
+
 import pygame
 import pygame_gui as gui
 
@@ -32,9 +34,24 @@ class Welcome(BaseScene):
             manager=self.gui_manager,
             anchors={"center": "center"},
         )
+        gui.elements.UIButton(
+            relative_rect=pygame.Rect(0, 120, 100, 50),
+            text="Login",
+            manager=self.gui_manager,
+            anchors={"center": "center"},
+            command=self._login,
+        )
 
     def _start_the_game(self):
         self.finished = True
+
+    def _login(self):
+        try:
+            default_browser = webbrowser.get("windows-default")
+            default_browser.open("https://www.google.com")
+        except webbrowser.Error as exc:
+            print("launch browser failed")
+            print(exc)
 
     def process_events(self, event: pygame.event.Event):
         self.gui_manager.process_events(event)
