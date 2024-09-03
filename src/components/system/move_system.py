@@ -70,3 +70,33 @@ class WASDMoveSystem(MoveSystem):
         else:
             self.vector.x = 0
 
+
+class MouseMoveSystem(MoveSystem):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.mouse_pos = None
+
+    def input(self):
+        if pygame.mouse.get_pressed()[0]:
+            self.mouse_pos = pygame.mouse.get_pos()
+
+    def update_distance_direction(self):
+        if self.mouse_pos is None:
+            return
+
+        current_pos = pygame.math.Vector2(self.sprite.hitbox.center)
+        if current_pos == self.mouse_pos:
+            self.mouse_pos = None
+            self.vector = pygame.math.Vector2()
+        elif current_pos.distance_to(self.mouse_pos) < 2:
+            self.sprite.hitbox.center = self.mouse_pos
+            self.sprite.rect.center = self.sprite.hitbox.center
+            self.mouse_pos = None
+            self.vector = pygame.math.Vector2()
+        else:
+            self.vector = self.mouse_pos - current_pos
+
+    def move(self):
+        self.update_distance_direction()
+        super().move()
