@@ -1,5 +1,8 @@
 import pygame
 
+from src import settings
+from src.components.algorithm import breadth_first_search
+
 
 class MoveSystem:
     def __init__(
@@ -100,3 +103,58 @@ class MouseMoveSystem(MoveSystem):
     def move(self):
         self.update_distance_direction()
         super().move()
+
+
+class MouseAutoMoveSystem(MoveSystem):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.collision_sprites is None:
+            self.collision_sprites = pygame.sprite.Group()
+
+        self.path = []
+
+    def _find_path(self, target_pos):
+        target_x, target_y = target_pos
+        start = (
+            int(self.sprite.hitbox.x // settings.GRID_SIZE),
+            int(self.sprite.hitbox.y // settings.GRID_SIZE),
+        )
+        end = (
+            target_x // settings.GRID_SIZE,
+            target_y // settings.GRID_SIZE,
+        )
+        return breadth_first_search(
+            start,
+            end,
+            self.collision_sprites,
+            settings.GRID_SIZE,
+            settings.WINDOW_WIDTH,
+            settings.WINDOW_HEIGHT,
+        )
+
+    def input(self):
+        if pygame.mouse.get_pressed()[0]:
+            self.path = self._find_path(pygame.mouse.get_pos())
+
+    def move(self):
+        if not self.path:
+            return
+
+        source_pos = pygame.math.Vector2(self.sprite.hitbox.topleft)
+        target_pos = pygame.math.Vector2(self.path[0])
+        if source_pos.distance_to(target_pos) > self.sprite.speed:
+            vector = (target_pos - source_pos).normalize() * self.sprite.speed
+            self.sprite.hitbox.topleft = source_pos + vector
+            if self.collisions():
+                self.sprite.hitbox.topleft = source_pos
+        else:
+            self.sprite.hitbox.topleft = target_pos
+            self.path.pop(0)
+        self.sprite.rect.center = self.sprite.hitbox.center
+
+    def collisions(self):
+        for sprite in self.collision_sprites:
+            if self.sprite.hitbox.colliderect(sprite.hitbox):
+                return True
+        return False
