@@ -1,12 +1,11 @@
 import random
-from itertools import product
 
 import pygame
 import pygame_gui as gui
 
 from src import settings
 from src.components.scene import BaseScene
-from src.player import Player, debug_player
+from src.player import Player
 
 
 def random_pos(
@@ -57,7 +56,6 @@ class Scene(BaseScene):
 
         # fixme: debug only
         self.debug = []
-        self.debug += debug_player(self.ui, self.player)
 
     def create_map(self):
         for _ in range(2):

@@ -3,7 +3,6 @@ from enum import Enum, auto
 from typing import Literal
 
 import pygame
-import pygame_gui as gui
 
 from src.components.system import MouseAutoMoveSystem
 
@@ -212,43 +211,3 @@ class Player(pygame.sprite.Sprite):
         screen = pygame.display.get_surface()
         for point in self.move_system.path:
             pygame.draw.rect(screen, "yellow", (point[0], point[1], 32, 32), 2)
-
-
-def debug_player(manager: gui.UIManager, player: Player) -> list[gui.core.UIElement]:
-    vector_label = gui.elements.UILabel(
-        relative_rect=pygame.Rect((10, 10), (-1, 30)),
-        text=str(player.vector),
-        manager=manager,
-    )
-    vector_label.update = lambda *args, **kwargs: vector_label.set_text(
-        str(player.vector)
-    )
-
-    direction_label = gui.elements.UILabel(
-        relative_rect=pygame.Rect((10, 40), (-1, 30)),
-        text=str(player.direction),
-        manager=manager,
-    )
-    direction_label.update = lambda *args, **kwargs: direction_label.set_text(
-        str(player.direction)
-    )
-
-    action_label = gui.elements.UILabel(
-        relative_rect=pygame.Rect((10, 70), (-1, 30)),
-        text=str(player.action),
-        manager=manager,
-    )
-    action_label.update = lambda *args, **kwargs: action_label.set_text(
-        str(player.action)
-    )
-
-    speed_label = gui.elements.UILabel(
-        relative_rect=pygame.Rect((10, 100), (-1, 30)),
-        text=f"speed: {player.speed}",
-        manager=manager,
-    )
-    speed_label.update = lambda *args, **kwargs: speed_label.set_text(
-        f"speed: {player.speed}"
-    )
-
-    return [vector_label, direction_label, action_label, speed_label]
