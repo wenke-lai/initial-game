@@ -12,11 +12,10 @@ from src.player import Player, debug_player
 def random_pos(
     width: int = settings.WINDOW_WIDTH,
     height: int = settings.WINDOW_HEIGHT,
-    margin: int = 64 * 2,
 ):
     return (
-        random.randint(margin, width - margin),
-        random.randint(margin, height - margin),
+        random.randint(0, width // settings.GRID_SIZE) * settings.GRID_SIZE,
+        random.randint(0, height // settings.GRID_SIZE) * settings.GRID_SIZE,
     )
 
 
@@ -31,7 +30,7 @@ class Obstacle(pygame.sprite.Sprite):
     def __init__(self, pos, groups):
         super().__init__(groups)
 
-        self.image = pygame.Surface((50, 50))
+        self.image = pygame.Surface((settings.GRID_SIZE, settings.GRID_SIZE))
         self.image.fill("red")
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(-10, -10)
