@@ -4,6 +4,7 @@ from .move_system import (
     ArrowMoveSystem,
     MouseAutoMoveSystem,
     MouseMoveSystem,
+    MoveDirection,
     WASDMoveSystem,
 )
 
@@ -14,4 +15,5 @@ __all__ = [
     "WASDMoveSystem",
     "MouseMoveSystem",
     "MouseAutoMoveSystem",
+    "MoveDirection",
 ]

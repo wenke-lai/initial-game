@@ -4,14 +4,7 @@ from typing import Literal
 
 import pygame
 
-from src.components.system import MouseAutoMoveSystem
-
-
-class PlayerDirection(Enum):
-    DOWN = auto()
-    LEFT = auto()
-    RIGHT = auto()
-    UP = auto()
+from src.components.system import MouseAutoMoveSystem, MoveDirection
 
 
 class PlayerAction(Enum):
@@ -28,40 +21,40 @@ FRAME_WIDTH = 64
 FRAME_HEIGHT = 64
 ANIMATION_MAPPINGS = {
     PlayerAction.STAND: {
-        PlayerDirection.DOWN: [(0, 0)],
-        PlayerDirection.UP: [(0, 1)],
-        PlayerDirection.RIGHT: [(0, 2)],
-        PlayerDirection.LEFT: [(0, 3)],
+        MoveDirection.DOWN: [(0, 0)],
+        MoveDirection.UP: [(0, 1)],
+        MoveDirection.RIGHT: [(0, 2)],
+        MoveDirection.LEFT: [(0, 3)],
     },
     PlayerAction.PUSH: {
-        PlayerDirection.DOWN: [(1, 0), (2, 0)],
-        PlayerDirection.UP: [(1, 1), (2, 1)],
-        PlayerDirection.RIGHT: [(1, 2), (2, 2)],
-        PlayerDirection.LEFT: [(1, 3), (2, 3)],
+        MoveDirection.DOWN: [(1, 0), (2, 0)],
+        MoveDirection.UP: [(1, 1), (2, 1)],
+        MoveDirection.RIGHT: [(1, 2), (2, 2)],
+        MoveDirection.LEFT: [(1, 3), (2, 3)],
     },
     PlayerAction.PULL: {
-        PlayerDirection.DOWN: [(3, 0), (4, 0)],
-        PlayerDirection.UP: [(3, 1), (4, 1)],
-        PlayerDirection.RIGHT: [(3, 2), (4, 2)],
-        PlayerDirection.LEFT: [(3, 3), (4, 3)],
+        MoveDirection.DOWN: [(3, 0), (4, 0)],
+        MoveDirection.UP: [(3, 1), (4, 1)],
+        MoveDirection.RIGHT: [(3, 2), (4, 2)],
+        MoveDirection.LEFT: [(3, 3), (4, 3)],
     },
     PlayerAction.JUMP: {
-        PlayerDirection.DOWN: [(5, 0), (6, 0), (7, 0), (5, 0)],
-        PlayerDirection.UP: [(5, 1), (6, 1), (7, 1), (5, 1)],
-        PlayerDirection.RIGHT: [(5, 2), (6, 2), (7, 2), (5, 2)],
-        PlayerDirection.LEFT: [(5, 3), (6, 3), (7, 3), (5, 3)],
+        MoveDirection.DOWN: [(5, 0), (6, 0), (7, 0), (5, 0)],
+        MoveDirection.UP: [(5, 1), (6, 1), (7, 1), (5, 1)],
+        MoveDirection.RIGHT: [(5, 2), (6, 2), (7, 2), (5, 2)],
+        MoveDirection.LEFT: [(5, 3), (6, 3), (7, 3), (5, 3)],
     },
     PlayerAction.WALK: {
-        PlayerDirection.DOWN: [(0, 4), (1, 4), (2, 4), (3, 4), (4, 4), (5, 4)],
-        PlayerDirection.UP: [(0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 5)],
-        PlayerDirection.RIGHT: [(0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6)],
-        PlayerDirection.LEFT: [(0, 7), (1, 7), (2, 7), (3, 7), (4, 7), (5, 7)],
+        MoveDirection.DOWN: [(0, 4), (1, 4), (2, 4), (3, 4), (4, 4), (5, 4)],
+        MoveDirection.UP: [(0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 5)],
+        MoveDirection.RIGHT: [(0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6)],
+        MoveDirection.LEFT: [(0, 7), (1, 7), (2, 7), (3, 7), (4, 7), (5, 7)],
     },
     PlayerAction.RUN: {
-        PlayerDirection.DOWN: [(0, 4), (1, 4), (6, 4), (3, 4), (4, 4), (7, 4)],
-        PlayerDirection.UP: [(0, 5), (1, 5), (6, 5), (3, 5), (4, 5), (7, 5)],
-        PlayerDirection.RIGHT: [(0, 6), (1, 6), (6, 6), (3, 6), (4, 6), (7, 6)],
-        PlayerDirection.LEFT: [(0, 7), (1, 7), (6, 7), (3, 7), (4, 7), (7, 7)],
+        MoveDirection.DOWN: [(0, 4), (1, 4), (6, 4), (3, 4), (4, 4), (7, 4)],
+        MoveDirection.UP: [(0, 5), (1, 5), (6, 5), (3, 5), (4, 5), (7, 5)],
+        MoveDirection.RIGHT: [(0, 6), (1, 6), (6, 6), (3, 6), (4, 6), (7, 6)],
+        MoveDirection.LEFT: [(0, 7), (1, 7), (6, 7), (3, 7), (4, 7), (7, 7)],
     },
 }
 UNDERWEARS = {
@@ -142,8 +135,8 @@ class Player(pygame.sprite.Sprite):
         self.status = {"speed": 3}
 
         # movement
-        self.direction = PlayerDirection.DOWN
-        self.vector = pygame.math.Vector2()
+        self.move_system = MouseAutoMoveSystem(self, obstacle_sprites)
+        self.direction = self.move_system.direction
         self.speed = self.status["speed"]
 
         # action
@@ -162,7 +155,6 @@ class Player(pygame.sprite.Sprite):
         self.hitbox = self.rect.inflate(-10, -10)
 
         # systems
-        self.move_system = MouseAutoMoveSystem(self, obstacle_sprites)
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -173,18 +165,8 @@ class Player(pygame.sprite.Sprite):
             self.speed = self.status["speed"]
 
     def status_update(self):
-        # the movement direction
-        if self.vector.x > 0:
-            self.direction = PlayerDirection.RIGHT
-        elif self.vector.x < 0:
-            self.direction = PlayerDirection.LEFT
-        elif self.vector.y > 0:
-            self.direction = PlayerDirection.DOWN
-        elif self.vector.y < 0:
-            self.direction = PlayerDirection.UP
-
         # the action
-        if self.vector.magnitude() == 0:
+        if self.move_system.vector.magnitude() == 0:
             self.action = PlayerAction.STAND
         else:
             if self.speed > self.status["speed"]:
@@ -203,8 +185,7 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         self.input()
-        self.move_system.input()
-        self.move_system.move()
+        self.move_system.update()
         self.status_update()
         self.animate()
 

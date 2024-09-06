@@ -1,7 +1,16 @@
+from enum import Enum
+
 import pygame
 
 from src import settings
 from src.components.algorithm import breadth_first_search
+
+
+class MoveDirection(Enum):
+    UP = "up"
+    DOWN = "down"
+    LEFT = "left"
+    RIGHT = "right"
 
 
 class MoveSystem:
@@ -13,6 +22,7 @@ class MoveSystem:
         self.sprite = sprite
         self.vector = pygame.math.Vector2()
         self.collision_sprites = collision_sprites
+        self.direction = MoveDirection.DOWN
 
     def input(self):
         raise NotImplementedError("This method must be implemented in a subclass")
@@ -35,9 +45,23 @@ class MoveSystem:
                 if self.vector.y != 0:
                     self.sprite.hitbox.y = preview_pos.y
 
+    def update_direction(self):
+        if self.vector.x > 0:
+            self.direction = MoveDirection.RIGHT
+        elif self.vector.x < 0:
+            self.direction = MoveDirection.LEFT
+        elif self.vector.y > 0:
+            self.direction = MoveDirection.DOWN
+        elif self.vector.y < 0:
+            self.direction = MoveDirection.UP
+        else:
+            # do-nothing (vector.x == vector.y == 0)
+            pass
+
     def update(self):
         self.input()
         self.move()
+        self.update_direction()
 
 
 class ArrowMoveSystem(MoveSystem):
@@ -144,11 +168,12 @@ class MouseAutoMoveSystem(MoveSystem):
         source_pos = pygame.math.Vector2(self.sprite.hitbox.topleft)
         target_pos = pygame.math.Vector2(self.path[0])
         if source_pos.distance_to(target_pos) > self.sprite.speed:
-            vector = (target_pos - source_pos).normalize() * self.sprite.speed
-            self.sprite.hitbox.topleft = source_pos + vector
+            self.vector = (target_pos - source_pos).normalize()
+            self.sprite.hitbox.topleft = source_pos + self.vector * self.sprite.speed
             if self.collisions():
                 self.sprite.hitbox.topleft = source_pos
         else:
+            self.vector = target_pos
             self.sprite.hitbox.topleft = target_pos
             self.path.pop(0)
         self.sprite.rect.center = self.sprite.hitbox.center
