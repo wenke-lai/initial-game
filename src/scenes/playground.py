@@ -5,7 +5,7 @@ import pygame_gui as gui
 
 from src import settings
 from src.components.scene import BaseScene
-from src.player import Player
+from src.player import NPC, Player
 
 
 def random_pos(
@@ -59,16 +59,13 @@ class Scene(BaseScene):
 
     def create_map(self):
         for _ in range(2):
-            npc = Player(
+            NPC(
                 random_pos(),
                 random.choice(["a", "b"]),
                 [self.visible_sprites, self.obstacle_sprites],
                 None,
                 random.choice([True, False]),
             )
-            if random.choice([True, False]):
-                npc.input = lambda: None  # can do nothing
-            npc.move = lambda: None  # can do actions but no movement
 
             Obstacle(random_pos(), [self.visible_sprites, self.obstacle_sprites])
 
