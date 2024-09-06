@@ -5,6 +5,8 @@ from typing import Literal
 import pygame
 import pygame_gui as gui
 
+from src.components.system import MouseAutoMoveSystem
+
 
 class PlayerDirection(Enum):
     DOWN = auto()
@@ -160,21 +162,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = pos
         self.hitbox = self.rect.inflate(-10, -10)
 
+        # systems
+        self.move_system = MouseAutoMoveSystem(self, obstacle_sprites)
+
     def input(self):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]:
-            self.vector.y = -1
-        elif keys[pygame.K_DOWN]:
-            self.vector.y = 1
-        else:
-            self.vector.y = 0
-
-        if keys[pygame.K_RIGHT]:
-            self.vector.x = 1
-        elif keys[pygame.K_LEFT]:
-            self.vector.x = -1
-        else:
-            self.vector.x = 0
 
         if keys[pygame.K_LSHIFT]:
             self.speed = self.status["speed"] * 2.5
@@ -201,33 +193,6 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.action = PlayerAction.WALK
 
-    def move(self):
-        previous_pos = pygame.math.Vector2(self.hitbox.topleft)
-
-        if self.vector.magnitude() != 0:
-            self.vector = self.vector.normalize()
-        move_vector = pygame.math.Vector2(
-            self.vector.x * self.speed,
-            self.vector.y * self.speed,
-        )
-        self.hitbox.topleft += move_vector
-        self.collision(previous_pos)
-
-        self.rect.center = self.hitbox.center
-
-    def collision(self, previous_pos: pygame.math.Vector2):
-        # todo: this only corrects collisions for a single object
-        is_colliding = False
-        for sprite in self.obstacle_sprites:
-            if sprite.hitbox.colliderect(self.hitbox):
-                if pygame.sprite.collide_mask(self, sprite):
-                    is_colliding = True
-        if is_colliding:
-            if self.vector.x != 0:
-                self.hitbox.x = previous_pos.x
-            if self.vector.y != 0:
-                self.hitbox.y = previous_pos.y
-
     def animate(self):
         animations = self.animations[self.direction][self.action]
         self.frame_index += self.frame_speed
@@ -239,9 +204,14 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         self.input()
-        self.move()
+        self.move_system.input()
+        self.move_system.move()
         self.status_update()
         self.animate()
+
+        screen = pygame.display.get_surface()
+        for point in self.move_system.path:
+            pygame.draw.rect(screen, "yellow", (point[0], point[1], 32, 32), 2)
 
 
 def debug_player(manager: gui.UIManager, player: Player) -> list[gui.core.UIElement]:
