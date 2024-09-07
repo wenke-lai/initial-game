@@ -183,3 +183,10 @@ class MouseAutoMoveSystem(MoveSystem):
             if self.sprite.hitbox.colliderect(sprite.hitbox):
                 return True
         return False
+
+    def update(self):
+        super().update()
+
+        screen = pygame.display.get_surface()
+        for point in self.move_system.path:
+            pygame.draw.rect(screen, "yellow", (point[0], point[1], 32, 32), 2)

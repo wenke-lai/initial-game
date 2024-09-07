@@ -4,7 +4,7 @@ from typing import Literal
 
 import pygame
 
-from src.components.system import MouseAutoMoveSystem, MoveDirection
+from src.components.system import MouseMoveSystem, MoveDirection
 
 
 class PlayerAction(Enum):
@@ -135,7 +135,7 @@ class Player(pygame.sprite.Sprite):
         self.status = {"speed": 3}
 
         # movement
-        self.move_system = MouseAutoMoveSystem(self, obstacle_sprites)
+        self.move_system = MouseMoveSystem(self, obstacle_sprites)
         self.direction = self.move_system.direction
         self.speed = self.status["speed"]
 
@@ -188,10 +188,6 @@ class Player(pygame.sprite.Sprite):
         self.move_system.update()
         self.status_update()
         self.animate()
-
-        screen = pygame.display.get_surface()
-        for point in self.move_system.path:
-            pygame.draw.rect(screen, "yellow", (point[0], point[1], 32, 32), 2)
 
 
 class NPC(Player):
