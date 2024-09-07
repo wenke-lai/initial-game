@@ -3,14 +3,8 @@ from enum import Enum, auto
 from typing import Literal
 
 import pygame
-import pygame_gui as gui
 
-
-class PlayerDirection(Enum):
-    DOWN = auto()
-    LEFT = auto()
-    RIGHT = auto()
-    UP = auto()
+from src.components.system import MouseMoveSystem, MoveDirection
 
 
 class PlayerAction(Enum):
@@ -27,40 +21,40 @@ FRAME_WIDTH = 64
 FRAME_HEIGHT = 64
 ANIMATION_MAPPINGS = {
     PlayerAction.STAND: {
-        PlayerDirection.DOWN: [(0, 0)],
-        PlayerDirection.UP: [(0, 1)],
-        PlayerDirection.RIGHT: [(0, 2)],
-        PlayerDirection.LEFT: [(0, 3)],
+        MoveDirection.DOWN: [(0, 0)],
+        MoveDirection.UP: [(0, 1)],
+        MoveDirection.RIGHT: [(0, 2)],
+        MoveDirection.LEFT: [(0, 3)],
     },
     PlayerAction.PUSH: {
-        PlayerDirection.DOWN: [(1, 0), (2, 0)],
-        PlayerDirection.UP: [(1, 1), (2, 1)],
-        PlayerDirection.RIGHT: [(1, 2), (2, 2)],
-        PlayerDirection.LEFT: [(1, 3), (2, 3)],
+        MoveDirection.DOWN: [(1, 0), (2, 0)],
+        MoveDirection.UP: [(1, 1), (2, 1)],
+        MoveDirection.RIGHT: [(1, 2), (2, 2)],
+        MoveDirection.LEFT: [(1, 3), (2, 3)],
     },
     PlayerAction.PULL: {
-        PlayerDirection.DOWN: [(3, 0), (4, 0)],
-        PlayerDirection.UP: [(3, 1), (4, 1)],
-        PlayerDirection.RIGHT: [(3, 2), (4, 2)],
-        PlayerDirection.LEFT: [(3, 3), (4, 3)],
+        MoveDirection.DOWN: [(3, 0), (4, 0)],
+        MoveDirection.UP: [(3, 1), (4, 1)],
+        MoveDirection.RIGHT: [(3, 2), (4, 2)],
+        MoveDirection.LEFT: [(3, 3), (4, 3)],
     },
     PlayerAction.JUMP: {
-        PlayerDirection.DOWN: [(5, 0), (6, 0), (7, 0), (5, 0)],
-        PlayerDirection.UP: [(5, 1), (6, 1), (7, 1), (5, 1)],
-        PlayerDirection.RIGHT: [(5, 2), (6, 2), (7, 2), (5, 2)],
-        PlayerDirection.LEFT: [(5, 3), (6, 3), (7, 3), (5, 3)],
+        MoveDirection.DOWN: [(5, 0), (6, 0), (7, 0), (5, 0)],
+        MoveDirection.UP: [(5, 1), (6, 1), (7, 1), (5, 1)],
+        MoveDirection.RIGHT: [(5, 2), (6, 2), (7, 2), (5, 2)],
+        MoveDirection.LEFT: [(5, 3), (6, 3), (7, 3), (5, 3)],
     },
     PlayerAction.WALK: {
-        PlayerDirection.DOWN: [(0, 4), (1, 4), (2, 4), (3, 4), (4, 4), (5, 4)],
-        PlayerDirection.UP: [(0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 5)],
-        PlayerDirection.RIGHT: [(0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6)],
-        PlayerDirection.LEFT: [(0, 7), (1, 7), (2, 7), (3, 7), (4, 7), (5, 7)],
+        MoveDirection.DOWN: [(0, 4), (1, 4), (2, 4), (3, 4), (4, 4), (5, 4)],
+        MoveDirection.UP: [(0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 5)],
+        MoveDirection.RIGHT: [(0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6)],
+        MoveDirection.LEFT: [(0, 7), (1, 7), (2, 7), (3, 7), (4, 7), (5, 7)],
     },
     PlayerAction.RUN: {
-        PlayerDirection.DOWN: [(0, 4), (1, 4), (6, 4), (3, 4), (4, 4), (7, 4)],
-        PlayerDirection.UP: [(0, 5), (1, 5), (6, 5), (3, 5), (4, 5), (7, 5)],
-        PlayerDirection.RIGHT: [(0, 6), (1, 6), (6, 6), (3, 6), (4, 6), (7, 6)],
-        PlayerDirection.LEFT: [(0, 7), (1, 7), (6, 7), (3, 7), (4, 7), (7, 7)],
+        MoveDirection.DOWN: [(0, 4), (1, 4), (6, 4), (3, 4), (4, 4), (7, 4)],
+        MoveDirection.UP: [(0, 5), (1, 5), (6, 5), (3, 5), (4, 5), (7, 5)],
+        MoveDirection.RIGHT: [(0, 6), (1, 6), (6, 6), (3, 6), (4, 6), (7, 6)],
+        MoveDirection.LEFT: [(0, 7), (1, 7), (6, 7), (3, 7), (4, 7), (7, 7)],
     },
 }
 UNDERWEARS = {
@@ -141,8 +135,8 @@ class Player(pygame.sprite.Sprite):
         self.status = {"speed": 3}
 
         # movement
-        self.direction = PlayerDirection.DOWN
-        self.vector = pygame.math.Vector2()
+        self.move_system = MouseMoveSystem(self, obstacle_sprites)
+        self.direction = self.move_system.direction
         self.speed = self.status["speed"]
 
         # action
@@ -160,21 +154,10 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = pos
         self.hitbox = self.rect.inflate(-10, -10)
 
+        # systems
+
     def input(self):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]:
-            self.vector.y = -1
-        elif keys[pygame.K_DOWN]:
-            self.vector.y = 1
-        else:
-            self.vector.y = 0
-
-        if keys[pygame.K_RIGHT]:
-            self.vector.x = 1
-        elif keys[pygame.K_LEFT]:
-            self.vector.x = -1
-        else:
-            self.vector.x = 0
 
         if keys[pygame.K_LSHIFT]:
             self.speed = self.status["speed"] * 2.5
@@ -182,51 +165,14 @@ class Player(pygame.sprite.Sprite):
             self.speed = self.status["speed"]
 
     def status_update(self):
-        # the movement direction
-        if self.vector.x > 0:
-            self.direction = PlayerDirection.RIGHT
-        elif self.vector.x < 0:
-            self.direction = PlayerDirection.LEFT
-        elif self.vector.y > 0:
-            self.direction = PlayerDirection.DOWN
-        elif self.vector.y < 0:
-            self.direction = PlayerDirection.UP
-
         # the action
-        if self.vector.magnitude() == 0:
+        if self.move_system.vector.magnitude() == 0:
             self.action = PlayerAction.STAND
         else:
             if self.speed > self.status["speed"]:
                 self.action = PlayerAction.RUN
             else:
                 self.action = PlayerAction.WALK
-
-    def move(self):
-        previous_pos = pygame.math.Vector2(self.hitbox.topleft)
-
-        if self.vector.magnitude() != 0:
-            self.vector = self.vector.normalize()
-        move_vector = pygame.math.Vector2(
-            self.vector.x * self.speed,
-            self.vector.y * self.speed,
-        )
-        self.hitbox.topleft += move_vector
-        self.collision(previous_pos)
-
-        self.rect.center = self.hitbox.center
-
-    def collision(self, previous_pos: pygame.math.Vector2):
-        # todo: this only corrects collisions for a single object
-        is_colliding = False
-        for sprite in self.obstacle_sprites:
-            if sprite.hitbox.colliderect(self.hitbox):
-                if pygame.sprite.collide_mask(self, sprite):
-                    is_colliding = True
-        if is_colliding:
-            if self.vector.x != 0:
-                self.hitbox.x = previous_pos.x
-            if self.vector.y != 0:
-                self.hitbox.y = previous_pos.y
 
     def animate(self):
         animations = self.animations[self.direction][self.action]
@@ -239,46 +185,13 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         self.input()
-        self.move()
+        self.move_system.update()
         self.status_update()
         self.animate()
 
 
-def debug_player(manager: gui.UIManager, player: Player) -> list[gui.core.UIElement]:
-    vector_label = gui.elements.UILabel(
-        relative_rect=pygame.Rect((10, 10), (-1, 30)),
-        text=str(player.vector),
-        manager=manager,
-    )
-    vector_label.update = lambda *args, **kwargs: vector_label.set_text(
-        str(player.vector)
-    )
-
-    direction_label = gui.elements.UILabel(
-        relative_rect=pygame.Rect((10, 40), (-1, 30)),
-        text=str(player.direction),
-        manager=manager,
-    )
-    direction_label.update = lambda *args, **kwargs: direction_label.set_text(
-        str(player.direction)
-    )
-
-    action_label = gui.elements.UILabel(
-        relative_rect=pygame.Rect((10, 70), (-1, 30)),
-        text=str(player.action),
-        manager=manager,
-    )
-    action_label.update = lambda *args, **kwargs: action_label.set_text(
-        str(player.action)
-    )
-
-    speed_label = gui.elements.UILabel(
-        relative_rect=pygame.Rect((10, 100), (-1, 30)),
-        text=f"speed: {player.speed}",
-        manager=manager,
-    )
-    speed_label.update = lambda *args, **kwargs: speed_label.set_text(
-        f"speed: {player.speed}"
-    )
-
-    return [vector_label, direction_label, action_label, speed_label]
+class NPC(Player):
+    def update(self):
+        # skip input and move
+        self.status_update()
+        self.animate()

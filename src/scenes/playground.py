@@ -1,56 +1,38 @@
 import random
-from itertools import product
 
 import pygame
 import pygame_gui as gui
 
 from src import settings
 from src.components.scene import BaseScene
-from src.player import Player, debug_player
+from src.player import NPC, Player
 
 
 def random_pos(
     width: int = settings.WINDOW_WIDTH,
     height: int = settings.WINDOW_HEIGHT,
-    margin: int = 64 * 2,
 ):
     return (
-        random.randint(margin, width - margin),
-        random.randint(margin, height - margin),
+        random.randint(0, width // settings.GRID_SIZE) * settings.GRID_SIZE,
+        random.randint(0, height // settings.GRID_SIZE) * settings.GRID_SIZE,
     )
 
 
-def create_grid(groups, size: int = 10):
-    mod_num = size * 2
-    coords = product(
-        range(0, settings.WINDOW_WIDTH, size),
-        range(0, settings.WINDOW_HEIGHT, size),
-    )
-    for x, y in coords:
-        if x % mod_num == 0 and y % mod_num == 0:
-            AnchorPoint((x, y), groups)
-        if x % mod_num != 0 and y % mod_num != 0:
-            AnchorPoint((x, y), groups)
+def create_grid(screen: pygame.Surface):
+    for x in range(0, settings.WINDOW_WIDTH, settings.GRID_SIZE):
+        pygame.draw.line(screen, "white", (x, 0), (x, settings.WINDOW_HEIGHT))
+    for y in range(0, settings.WINDOW_HEIGHT, settings.GRID_SIZE):
+        pygame.draw.line(screen, "white", (0, y), (settings.WINDOW_WIDTH, y))
 
 
 class Obstacle(pygame.sprite.Sprite):
     def __init__(self, pos, groups):
         super().__init__(groups)
 
-        self.image = pygame.Surface((50, 50))
+        self.image = pygame.Surface((settings.GRID_SIZE, settings.GRID_SIZE))
         self.image.fill("red")
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(-10, -10)
-
-
-class AnchorPoint(pygame.sprite.Sprite):
-    def __init__(self, pos, groups):
-        super().__init__(groups)
-
-        self.image = pygame.Surface((10, 10), pygame.SRCALPHA)
-        self.image.fill((125, 0, 0, 125))
-        self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(0, 0)
 
 
 class Scene(BaseScene):
@@ -74,23 +56,16 @@ class Scene(BaseScene):
 
         # fixme: debug only
         self.debug = []
-        self.debug += debug_player(self.ui, self.player)
 
     def create_map(self):
-        # todo: remove this, it's for debug
-        create_grid([self.visible_sprites])
-
         for _ in range(2):
-            npc = Player(
+            NPC(
                 random_pos(),
                 random.choice(["a", "b"]),
                 [self.visible_sprites, self.obstacle_sprites],
                 None,
                 random.choice([True, False]),
             )
-            if random.choice([True, False]):
-                npc.input = lambda: None  # can do nothing
-            npc.move = lambda: None  # can do actions but no movement
 
             Obstacle(random_pos(), [self.visible_sprites, self.obstacle_sprites])
 
@@ -98,6 +73,8 @@ class Scene(BaseScene):
         self.ui.process_events(event)
 
     def run(self):
+        create_grid(self.display_surface)
+
         self.ui.update(pygame.time.get_ticks() / 1000)
         self.visible_sprites.update()
 
